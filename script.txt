@@ -189,6 +189,7 @@ UPDATE Customers
 SET IsDeleted = 1
 WHERE FirstName = @FirstNameCustomer AND LastName = @LastNameCustomer
 GO
+
 /****** Object:  StoredProcedure [dbo].[uspNewCustomersNewAssociation]    Script Date: 26/11/2018 00:28:38 ******/
 SET ANSI_NULLS ON
 GO
@@ -235,27 +236,3 @@ SELECT
 COMMIT
 
 end
-
-
---	if @@error <> 0
---	begin
---	rollback transaction
---	end
---	else
---	begin
---	--creating the Association if the Customer was created sucessfully
---	insert into Associations
---		(CustomerId1,CustomerId2,AssociationTypeId)
-
---	values
---	(@AssociationTypeId, SCOPE_IDENTITY(), @CustomerId2)
---	commit transaction
---	end
-
-
-
---GO
-
-
-
-GO
