@@ -1,0 +1,261 @@
+/****** Object:  Table [dbo].[Accounts]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Accounts](
+	[AccountId] [int] IDENTITY(1,1) NOT NULL,
+	[AccountTypeId] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+	[CustomerId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[AccountId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[Associations]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Associations](
+	[AssociationId] [int] IDENTITY(1,1) NOT NULL,
+	[CustomerId1] [int] NOT NULL,
+	[CustomerId2] [int] NOT NULL,
+	[AssociationTypeId] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[AssociationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[Customers]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Customers](
+	[CustomerId] [int] IDENTITY(1,1) NOT NULL,
+	[FirstName] [varchar](20) NOT NULL,
+	[LastName] [varchar](20) NOT NULL,
+	[CustomerTypeId] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CustomerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[ReferenceData]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[ReferenceData](
+	[ReferenceDataId] [int] IDENTITY(1,1) NOT NULL,
+	[ReferenceDesc] [varchar](55) NOT NULL,
+	[IsDeleted] [bit] NULL,
+	[ReferenceType] [varchar](50) NOT NULL DEFAULT (''),
+PRIMARY KEY CLUSTERED 
+(
+	[ReferenceDataId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[Securities]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Securities](
+	[SecurityId] [int] IDENTITY(1,1) NOT NULL,
+	[SecurityTypeId] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+	[AccountId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[SecurityId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+/****** Object:  View [dbo].[vwCustomersAssociations]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[vwCustomersAssociations]
+AS
+SELECT C1.FirstName as 'First Name 1', C1.LastName as 'Surname 1', R.ReferenceType, C2.FirstName as 'First Name 2', C2.LastName as 'Surname 2' 
+FROM dbo.Associations A
+INNER JOIN dbo.ReferenceData R
+ON A.AssociationTypeId = R.ReferenceDataId
+INNER JOIN dbo.Customers C1
+ON A.CustomerId1 = C1.CustomerId
+INNER JOIN dbo.Customers C2
+ON A.CustomerId2 = C2.CustomerId
+
+
+GO
+/****** Object:  View [dbo].[vwDeletedReferenceData]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE VIEW [dbo].[vwDeletedReferenceData]
+WITH SCHEMABINDING
+AS
+SELECT
+	ReferenceDataId as'Deleted Record ID',
+	ReferenceType
+FROM dbo.ReferenceData
+WHERE Isdeleted = 1
+
+
+
+
+GO
+ALTER TABLE [dbo].[Accounts]  WITH CHECK ADD FOREIGN KEY([AccountTypeId])
+REFERENCES [dbo].[ReferenceData] ([ReferenceDataId])
+GO
+ALTER TABLE [dbo].[Accounts]  WITH CHECK ADD FOREIGN KEY([CustomerId])
+REFERENCES [dbo].[Customers] ([CustomerId])
+GO
+ALTER TABLE [dbo].[Associations]  WITH CHECK ADD FOREIGN KEY([AssociationTypeId])
+REFERENCES [dbo].[ReferenceData] ([ReferenceDataId])
+GO
+ALTER TABLE [dbo].[Associations]  WITH CHECK ADD  CONSTRAINT [fkAssociations_CustomerId1] FOREIGN KEY([CustomerId1])
+REFERENCES [dbo].[Customers] ([CustomerId])
+GO
+ALTER TABLE [dbo].[Associations] CHECK CONSTRAINT [fkAssociations_CustomerId1]
+GO
+ALTER TABLE [dbo].[Associations]  WITH CHECK ADD  CONSTRAINT [fkAssociations_CustomerId2] FOREIGN KEY([CustomerId2])
+REFERENCES [dbo].[Customers] ([CustomerId])
+GO
+ALTER TABLE [dbo].[Associations] CHECK CONSTRAINT [fkAssociations_CustomerId2]
+GO
+ALTER TABLE [dbo].[Customers]  WITH CHECK ADD FOREIGN KEY([CustomerTypeId])
+REFERENCES [dbo].[ReferenceData] ([ReferenceDataId])
+GO
+ALTER TABLE [dbo].[Securities]  WITH CHECK ADD FOREIGN KEY([SecurityTypeId])
+REFERENCES [dbo].[ReferenceData] ([ReferenceDataId])
+GO
+ALTER TABLE [dbo].[Securities]  WITH CHECK ADD  CONSTRAINT [fkSecurities_AccountId] FOREIGN KEY([AccountId])
+REFERENCES [dbo].[Accounts] ([AccountId])
+GO
+ALTER TABLE [dbo].[Securities] CHECK CONSTRAINT [fkSecurities_AccountId]
+GO
+ALTER TABLE [dbo].[Associations]  WITH CHECK ADD CHECK  (([CustomerId1]<>[CustomerId2]))
+GO
+/****** Object:  StoredProcedure [dbo].[uspDeleteCustomerRecord]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[uspDeleteCustomerRecord]
+
+@FirstNameCustomer varchar(20),
+@LastNameCustomer varchar(20),
+@IsDeleted bit
+AS
+UPDATE Securities 
+SET IsDeleted = 1 
+WHERE AccountId IN (SELECT AccountId FROM Accounts WHERE CustomerId IN (SELECT CustomerId FROM Customers WHERE FirstName = @FirstNameCustomer AND LastName = @LastNameCustomer)) 
+
+UPDATE Accounts 
+SET IsDeleted = 1 
+WHERE CustomerId IN (SELECT CustomerId FROM Customers WHERE FirstName = @FirstNameCustomer AND LastName = @LastNameCustomer)
+
+UPDATE Customers 
+SET IsDeleted = 1
+WHERE FirstName = @FirstNameCustomer AND LastName = @LastNameCustomer
+GO
+/****** Object:  StoredProcedure [dbo].[uspNewCustomersNewAssociation]    Script Date: 26/11/2018 00:28:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[uspNewCustomersNewAssociation]
+(
+@FirstNameCustomer1 varchar(20),
+@LastNameCustomer1 varchar (20),
+@CustomerTypeCustomer1 varchar(50),
+@IsDeletedCustomer1 bit,
+@FirstNameCustomer2 varchar(20),
+@LastNameCustomer2 varchar (20),
+@AssociationType varchar(50),
+@IsDeletedAssociation bit
+)
+as
+Begin 
+Begin tran
+
+IF (NOT EXISTS (SELECT * FROM ReferenceData WHERE [ReferenceType] = @AssociationType))
+INSERT INTO [dbo].[ReferenceData] ([ReferenceDesc],[IsDeleted],[ReferenceType])
+VALUES('', NULL, @AssociationType)
+
+IF (NOT EXISTS (SELECT * FROM ReferenceData WHERE [ReferenceType] = @CustomerTypeCustomer1))
+INSERT INTO [dbo].[ReferenceData] ([ReferenceDesc],[IsDeleted],[ReferenceType])
+VALUES('', NULL, @CustomerTypeCustomer1)
+
+INSERT INTO [dbo].[Customers] ([FirstName],[LastName],[CustomerTypeId],[IsDeleted])
+SELECT 
+@FirstNameCustomer1,
+@LastNameCustomer1,
+(SELECT [ReferenceDataId] FROM ReferenceData WHERE ReferenceType = @CustomerTypeCustomer1),
+@IsDeletedCustomer1
+
+INSERT INTO [dbo].[Associations] ([CustomerId1],[CustomerId2],[AssociationTypeId],[IsDeleted])
+SELECT
+(SELECT [CustomerId] FROM Customers WHERE FirstName = @FirstNameCustomer1 AND LastName = @LastNameCustomer1),
+(SELECT [CustomerId] FROM Customers WHERE FirstName = @FirstNameCustomer2 AND LastName = @LastNameCustomer2),
+(SELECT [ReferenceDataId] FROM ReferenceData WHERE ReferenceType = @AssociationType),
+@IsDeletedAssociation
+COMMIT
+
+end
+
+
+--	if @@error <> 0
+--	begin
+--	rollback transaction
+--	end
+--	else
+--	begin
+--	--creating the Association if the Customer was created sucessfully
+--	insert into Associations
+--		(CustomerId1,CustomerId2,AssociationTypeId)
+
+--	values
+--	(@AssociationTypeId, SCOPE_IDENTITY(), @CustomerId2)
+--	commit transaction
+--	end
+
+
+
+--GO
+
+
+
+GO
